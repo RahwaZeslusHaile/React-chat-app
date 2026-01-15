@@ -1,4 +1,11 @@
+import { useEffect,useRef } from "react";
+
 function MessageList({ messages }) {
+    const messageEndRef = useRef(null);
+
+    useEffect(() => {
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
     return (
         <div className="flex flex-col p-4 space-y-4 overflow-y-auto h-full">
             {messages.map((msg) => (
