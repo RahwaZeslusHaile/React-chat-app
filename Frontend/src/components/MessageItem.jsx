@@ -10,10 +10,14 @@ function MessageItem({ message }) {
                     {message.timeStamp}
                 </span>
             </div>
-            <div className={`px-3 py-2 rounded-2xl max-w-[70%] break-words shadow-sm mt-1
-                         ${isMe ? 'bg-blue-100' : 'bg-gray-100'}`}>
+            <div
+                className={`px-3 py-2 rounded-2xl shadow-sm mt-1 break-words whitespace-normal
+                            max-w-full sm:max-w-[70%]
+                            ${isMe ? 'bg-blue-100' : 'bg-gray-100'}`}
+                >
                 {message.text}
             </div>
+
         </div>
     );
 }
