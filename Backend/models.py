@@ -13,6 +13,7 @@ class Timestamp:
     
     def to_dict(self) -> str:
         return str(self)
+    
 class UsernameValidator:
     
     MIN_LENGTH = 1
@@ -27,7 +28,6 @@ class UsernameValidator:
         return True
 
 
-# Single Responsibility Principle: Message content validation
 class MessageContentValidator:
     
     MAX_LENGTH = 1000
