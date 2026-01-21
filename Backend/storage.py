@@ -1,5 +1,5 @@
 from typing import Optional
-from models import IMessageRepository, IMessage, Message
+from Backend.models import IMessageRepository, IMessage, Message
 
 
 class InMemoryMessageRepository(IMessageRepository):

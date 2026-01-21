@@ -1,5 +1,5 @@
 from typing import Optional
-from models import IMessage, Message, IMessageRepository, UsernameValidator, MessageContentValidator
+from Backend.models import IMessage, Message, IMessageRepository, UsernameValidator, MessageContentValidator
 
 class MessageService:
   
