@@ -27,7 +27,6 @@ class UsernameValidator:
             return False
         return True
 
-
 class MessageContentValidator:
     
     MAX_LENGTH = 1000

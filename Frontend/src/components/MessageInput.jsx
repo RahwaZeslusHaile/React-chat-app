@@ -6,7 +6,7 @@ function UsernameEntry({ onSend }) {
   const [message, setMessage] = useState("");
   const handleSend = () => {
     if (username.trim() && message.trim()) {
-      onSend({ name: username, text: message, timeStamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+      onSend({ username: username, content: message, timeStamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
       setMessage("");
     }
 }
