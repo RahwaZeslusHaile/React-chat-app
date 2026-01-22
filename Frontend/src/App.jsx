@@ -1,4 +1,4 @@
-import { fetchMessages, postMessage } from "./utilis/api.js";
+import { fetchMessages, postMessage } from "./utilis/api.jsx";
 import ChatWindow from "./components/ChatWindow.jsx";
 import React, { useState, useEffect } from "react";
 
