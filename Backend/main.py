@@ -1,20 +1,22 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
+import os
 
 from models import Message
 from repository import InMemoryMessageRepository
 from service import MessageService
 from long_polling.poller import LongPoller
 
-
 app = FastAPI(title="Chat API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,7 +25,8 @@ app.add_middleware(
 
 repository = InMemoryMessageRepository()
 message_service = MessageService(repository)
-poller = LongPoller(message_service)  
+poller = LongPoller(message_service)
+
 
 class MessageRequest(BaseModel):
     username: str
@@ -36,9 +39,13 @@ class MessageResponse(BaseModel):
     timestamp: str
 
 
-@app.get("/")
-async def root():
-    return {"message": "Chat API is running"}
+frontend_path = os.path.join(os.path.dirname(__file__), "dist")
+
+app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
+@app.get("/", include_in_schema=False)
+def serve_frontend():
+    return FileResponse(os.path.join(frontend_path, "index.html"))
 
 
 @app.get("/messages", response_model=List[MessageResponse])
@@ -49,7 +56,7 @@ def get_messages(after: Optional[str] = Query(None, description="ISO timestamp t
             messages = message_service.get_messages_after(after_dt)
         else:
             messages = message_service.get_all_messages()
-        
+
         messages = sorted(messages, key=lambda m: m.timestamp.value, reverse=True)
         return [MessageResponse(**msg.to_dict()) for msg in messages]
 
@@ -91,7 +98,6 @@ def long_poll_messages(after: str = Query(..., description="ISO timestamp to pol
         raise HTTPException(status_code=400, detail="Invalid timestamp format")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 if __name__ == "__main__":
     import uvicorn
