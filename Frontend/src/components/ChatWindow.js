@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "./Header.jsx";
 import MessageList from "./MessageList.jsx";
-import MessageInput from "./MessageInput.jsx";
+import MessageInput from "./MessageInput.js";
 
 function ChatWindow({ messages, onSendMessage , children }){ {
     return(
