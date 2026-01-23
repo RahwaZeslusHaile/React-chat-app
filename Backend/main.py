@@ -17,9 +17,7 @@ app = FastAPI(title="Chat API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-            "https://rahwafrontendchatapp.hosting.codeyourfuture.io",
-            "https://backendrahwachatapp.hosting.codeyourfuture.io"
-        ],
+            "https://rahwafrontendchatapp.hosting.codeyourfuture.io"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
