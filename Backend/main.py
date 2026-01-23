@@ -36,15 +36,7 @@ class MessageResponse(BaseModel):
     username: str
     content: str
     timestamp: str
-
-frontend_path = os.path.join(os.path.dirname(__file__), "dist")
-
-app.mount("/static", StaticFiles(directory=frontend_path), name="static")
-
-@app.get("/{full_path:path}", include_in_schema=False)
-def serve_react(full_path: str):
-    return FileResponse(os.path.join(frontend_path, "index.html"))
-
+    
 @app.get("/messages", response_model=List[MessageResponse])
 def get_messages(after: Optional[str] = Query(None)):
     try:
