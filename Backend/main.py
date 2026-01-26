@@ -3,12 +3,12 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 from typing import Optional, List
 import os
 
-from models import Message
-from repository import InMemoryMessageRepository
+from dto import MessageRequest, MessageResponse, ReplyRequest, ReactionRequest
+from message_model import Message
+from repository_inmemory import InMemoryMessageRepository
 from service import MessageService
 from long_polling.poller import LongPoller
 
@@ -30,39 +30,6 @@ repository = InMemoryMessageRepository()
 message_service = MessageService(repository)
 poller = LongPoller(message_service)
 
-class MessageRequest(BaseModel):
-    username: str
-    content: str
-    scheduled_for: Optional[str] = None
-    text_color: Optional[str] = None
-    is_bold: bool = False
-    is_italic: bool = False
-
-class MessageResponse(BaseModel):
-    id: str
-    username: str
-    content: str
-    timestamp: str
-    timestamp_iso: str
-    parent_message_id: Optional[str] = None
-    likes: int = 0
-    dislikes: int = 0
-    scheduled_for: Optional[str] = None
-    text_color: Optional[str] = None
-    is_bold: bool = False
-    is_italic: bool = False
-
-class ReplyRequest(BaseModel):
-    username: str
-    content: str
-    scheduled_for: Optional[str] = None
-    text_color: Optional[str] = None
-    is_bold: bool = False
-    is_italic: bool = False
-
-class ReactionRequest(BaseModel):
-    reaction_type: str  # "like" or "dislike"
-    
 @app.get("/messages", response_model=List[MessageResponse])
 def get_messages(after: Optional[str] = Query(None)):
     try:

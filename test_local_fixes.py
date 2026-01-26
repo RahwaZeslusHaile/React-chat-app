@@ -5,8 +5,8 @@ import sys
 sys.path.insert(0, '/Users/cyf/Desktop/CYF/SDC/React-chat-app/Backend')
 
 from datetime import datetime, timedelta
-from models import Message, Timestamp
-from repository import InMemoryMessageRepository
+from message_model import Message, Timestamp
+from repository_inmemory import InMemoryMessageRepository
 from service import MessageService
 from long_polling.poller import LongPoller
 

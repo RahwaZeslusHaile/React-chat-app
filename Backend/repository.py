@@ -1,22 +1,13 @@
-from typing import Optional
-from models import IMessageRepository, IMessage, Message
+from repository_base import IMessageRepository
+from repository_inmemory import InMemoryMessageRepository
 
+__all__ = [
+    "IMessageRepository",
+    "InMemoryMessageRepository",
+]
+    
 
-class InMemoryMessageRepository(IMessageRepository):
-    
-    def __init__(self):
-        self._messages: dict[str, IMessage] = {}
-    
     def save(self, message: IMessage) -> None:
+
         if not isinstance(message, Message):
-            raise ValueError("Invalid message type")
-        self._messages[message.id] = message
-    
-    def get_all(self) -> list[IMessage]:
-        return list(self._messages.values())
-    
-    def get_by_id(self, message_id: str) -> Optional[IMessage]:
-        return self._messages.get(message_id)
-    
-    
 

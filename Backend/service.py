@@ -1,7 +1,9 @@
 from datetime import datetime
 import time
 from typing import Optional, List
-from models import IMessage, Message, IMessageRepository, UsernameValidator, MessageContentValidator, Timestamp
+from message_model import Message, Timestamp
+from repository_base import IMessageRepository
+from validators import UsernameValidator, MessageContentValidator
 
 class MessageService:
   
