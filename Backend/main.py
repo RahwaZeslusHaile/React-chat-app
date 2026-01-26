@@ -30,6 +30,11 @@ repository = InMemoryMessageRepository()
 message_service = MessageService(repository)
 poller = LongPoller(message_service)
 
+@app.get("/")
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "chat-api"}
+
 @app.get("/messages", response_model=List[MessageResponse])
 def get_messages(after: Optional[str] = Query(None)):
     try:
