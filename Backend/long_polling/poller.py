@@ -3,7 +3,7 @@ import time
 
 class LongPoller:
     
-    def __init__(self, message_service, timeout=25, interval=0.5):
+    def __init__(self, message_service, timeout=20, interval=0.5):
         self.message_service = message_service
         self.timeout = timeout
         self.interval = interval
