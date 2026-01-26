@@ -40,6 +40,16 @@ class MessageResponse(BaseModel):
     content: str
     timestamp: str
     timestamp_iso: str
+    parent_message_id: Optional[str] = None
+    likes: int = 0
+    dislikes: int = 0
+
+class ReplyRequest(BaseModel):
+    username: str
+    content: str
+
+class ReactionRequest(BaseModel):
+    reaction_type: str  # "like" or "dislike"
     
 @app.get("/messages", response_model=List[MessageResponse])
 def get_messages(after: Optional[str] = Query(None)):
@@ -82,6 +92,39 @@ def get_message(message_id: str):
 def create_message(request: MessageRequest):
     try:
         message = message_service.create_message(username=request.username, content=request.content)
+        return MessageResponse(**message.to_dict())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/messages/{message_id}/replies", response_model=MessageResponse)
+def create_reply(message_id: str, request: ReplyRequest):
+    try:
+        reply = message_service.create_reply(username=request.username, content=request.content, parent_message_id=message_id)
+        return MessageResponse(**reply.to_dict())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/messages/{message_id}/replies", response_model=List[MessageResponse])
+def get_replies(message_id: str):
+    try:
+        message = message_service.get_message_by_id(message_id)
+        if not message:
+            raise HTTPException(status_code=404, detail="Message not found")
+        replies = message_service.get_replies(message_id)
+        return [MessageResponse(**reply.to_dict()) for reply in replies]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/messages/{message_id}/reactions", response_model=MessageResponse)
+def add_reaction(message_id: str, request: ReactionRequest):
+    try:
+        if request.reaction_type not in ["like", "dislike"]:
+            raise HTTPException(status_code=400, detail="Invalid reaction type. Must be 'like' or 'dislike'")
+        message = message_service.add_reaction(message_id, request.reaction_type)
         return MessageResponse(**message.to_dict())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

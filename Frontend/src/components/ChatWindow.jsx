@@ -3,11 +3,11 @@ import Header from "./Header.jsx";
 import MessageList from "./MessageList.jsx";
 import MessageInput from "./MessageInput.jsx";
 
-function ChatWindow({ messages, onSendMessage , children }){
+function ChatWindow({ messages, onSendMessage, onReactionChange, children }){
     return(
         <div className="flex flex-col h-full">
             <Header />
-            <MessageList messages={messages} />
+            <MessageList messages={messages} onReactionChange={onReactionChange} />
             <MessageInput onSend={onSendMessage} />
             <div className="flex-1 overflow-y-auto p-4">
                 {children} 

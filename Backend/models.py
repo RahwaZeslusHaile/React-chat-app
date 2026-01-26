@@ -84,6 +84,9 @@ class Message(IMessage):
     username: str = ""
     content: str = ""
     timestamp: Timestamp = field(default_factory=Timestamp)
+    parent_message_id: Optional[str] = None
+    likes: int = 0
+    dislikes: int = 0
     
     def __post_init__(self):
         if not UsernameValidator.validate(self.username):
@@ -97,7 +100,10 @@ class Message(IMessage):
             "username": self.username,
             "content": self.content,
             "timestamp": self.get_timestamp(),
-            "timestamp_iso": self.timestamp.value.isoformat()
+            "timestamp_iso": self.timestamp.value.isoformat(),
+            "parent_message_id": self.parent_message_id,
+            "likes": self.likes,
+            "dislikes": self.dislikes
         }
     
     def get_username(self) -> str:
