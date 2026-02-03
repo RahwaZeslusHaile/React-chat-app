@@ -24,7 +24,7 @@ function UsernameEntry({ onSend }) {
       setScheduledFor("");
       setIsBold(false);
       setIsItalic(false);
-      setTextColor("#111827");
+      setTextColor("#3f568a");
     }
   }
 

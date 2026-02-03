@@ -1,4 +1,6 @@
-const BASE_URL = "https://backendrahwachatapp.hosting.codeyourfuture.io";
+import { API_CONFIG } from "../config/api.js";
+
+const BASE_URL = API_CONFIG.REST_URL;
 
 export const fetchMessages = async () => {
   try {
