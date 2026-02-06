@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Query, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +15,12 @@ from websocket.connection_manager import ConnectionManager
 from websocket.handlers import handle_websocket
 
 app = FastAPI(title="Chat API", version="1.0.0")
+
+def parse_iso_datetime(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is not None:
+        return parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    return parsed
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,7 +49,7 @@ def health_check():
 def get_messages(after: Optional[str] = Query(None)):
     try:
         if after:
-            after_dt = datetime.fromisoformat(after)
+            after_dt = parse_iso_datetime(after)
             messages = message_service.get_messages_after(after_dt)
         else:
             messages = message_service.get_all_messages()
@@ -57,7 +63,7 @@ def get_messages(after: Optional[str] = Query(None)):
 @app.get("/messages/longpoll", response_model=List[MessageResponse])
 def long_poll_messages(after: str = Query(...)):
     try:
-        after_dt = datetime.fromisoformat(after)
+        after_dt = parse_iso_datetime(after)
         new_messages = poller.wait_for_new_messages(after_dt)
         sorted_messages = sorted(new_messages, key=lambda m: m.timestamp.value, reverse=True)
         return [MessageResponse(**m.to_dict()) for m in sorted_messages]
@@ -79,7 +85,7 @@ def get_message(message_id: str):
 @app.post("/messages", response_model=MessageResponse)
 def create_message(request: MessageRequest):
     try:
-        scheduled_dt = datetime.fromisoformat(request.scheduled_for) if request.scheduled_for else None
+        scheduled_dt = parse_iso_datetime(request.scheduled_for) if request.scheduled_for else None
         message = message_service.create_message(
             username=request.username,
             content=request.content,
@@ -97,7 +103,7 @@ def create_message(request: MessageRequest):
 @app.post("/messages/{message_id}/replies", response_model=MessageResponse)
 def create_reply(message_id: str, request: ReplyRequest):
     try:
-        scheduled_dt = datetime.fromisoformat(request.scheduled_for) if request.scheduled_for else None
+        scheduled_dt = parse_iso_datetime(request.scheduled_for) if request.scheduled_for else None
         reply = message_service.create_reply(
             username=request.username,
             content=request.content,
