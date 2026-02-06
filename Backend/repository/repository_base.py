@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from message_model import Message
+from models.message_model import Message
 
 
 class IMessageRepository(ABC):
