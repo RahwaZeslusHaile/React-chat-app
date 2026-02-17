@@ -6,9 +6,10 @@ A simple real-time chat application with a React frontend and a Python backend. 
 
 - Send and receive messages
 - View messages from other users with timestamps
-- Long-polling message fetch
+- Real-time updates via **WebSocket** or **Long-Polling**
 - Message reactions (like / dislike) — stretch goal
 - Reply, formatting, and color options — optional
+- Automatic reconnection and connection status indicator
 
 ## Prerequisites
 
@@ -52,15 +53,27 @@ Open the frontend URL shown by the dev server (usually http://localhost:3000 or 
 
 ## Tech Stack
 
-- Frontend: React, Axios (HTTP)
-- Backend: Python (Flask or FastAPI), optional SQLAlchemy + SQLite
-- Communication: REST API + Long-Polling
+- Frontend: React, WebSocket client
+- Backend: Python (FastAPI), WebSocket support
+- Communication: REST API + WebSocket (or Long-Polling as fallback)
+- Optional: SQLAlchemy + SQLite for persistence
+
+## Communication Options
+
+### WebSocket (Recommended)
+Real-time bidirectional communication with automatic reconnection. Configure via `VITE_USE_WEBSOCKET=true` environment variable.
+
+### Long-Polling
+Alternative polling mechanism for environments where WebSocket is not available. Configure via `VITE_USE_WEBSOCKET=false` environment variable.
+
+For detailed WebSocket setup and deployment instructions, see [WEBSOCKET_README.md](WEBSOCKET_README.md).
 
 ## Development Notes
 
 - The frontend and backend are separated into their respective folders for clarity.
 - Use a virtual environment for backend development to isolate dependencies.
 - The project follows a MoSCoW prioritization (MVP -> Stretch -> Optional) for features.
+- Choose between WebSocket and Long-Polling based on your deployment environment.
 
 ## Contributing
 
