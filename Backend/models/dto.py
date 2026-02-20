@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
-
+from enum import Enum
 
 class MessageRequest(BaseModel):
     username: str
@@ -20,10 +20,12 @@ class ReplyRequest(BaseModel):
     is_bold: bool = False
     is_italic: bool = False
 
+class ReactionRequest(str,Enum):
+    like: str = "like"
+    dislike: str = "dislike"
 
-class ReactionRequest(BaseModel):
-    reaction_type: str  # "like" or "dislike"
-
+class ReactionType(BaseModel):
+    reaction_type: ReactionRequest
 
 class MessageResponse(BaseModel):
     id: str
