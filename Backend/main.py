@@ -1,17 +1,16 @@
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException, Query, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from typing import Optional, List
 import os
-
-from models.dto import MessageRequest, MessageResponse, ReactionType, ReplyRequest, ReactionRequest
-from models.message_model import Message
-from repository.repository_inmemory import InMemoryMessageRepository
+from dependencies import get_message_service, get_poller, get_ws_manager;
 from service.service import MessageService
 from long_polling.poller import LongPoller
 from websocket.connection_manager import ConnectionManager
+from models.dto import MessageRequest, MessageResponse, ReactionType, ReplyRequest, ReactionRequest
+from models.message_model import Message
 from websocket.handlers import handle_websocket
 
 app = FastAPI(title="Chat API", version="1.0.0")
@@ -35,18 +34,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-repository = InMemoryMessageRepository()
-message_service = MessageService(repository)
-poller = LongPoller(message_service)
-ws_manager = ConnectionManager()
-
 @app.get("/")
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "chat-api"}
 
 @app.get("/messages", response_model=List[MessageResponse])
-def get_messages(after: Optional[str] = Query(None)):
+def get_messages(after: Optional[str] = Query(None), message_service: MessageService = Depends(get_message_service)):
     try:
         if after:
             after_dt = parse_iso_datetime(after)
@@ -60,7 +54,7 @@ def get_messages(after: Optional[str] = Query(None)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/messages/longpoll", response_model=List[MessageResponse])
-def long_poll_messages(after: str = Query(...)):
+def long_poll_messages(after: str = Query(...), poller: LongPoller = Depends(get_poller)):
     try:
         after_dt = parse_iso_datetime(after)
         new_messages = poller.wait_for_new_messages(after_dt)
@@ -72,7 +66,7 @@ def long_poll_messages(after: str = Query(...)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/messages/{message_id}", response_model=MessageResponse)
-def get_message(message_id: str):
+def get_message(message_id: str, message_service: MessageService = Depends(get_message_service)):
     try:
         message = message_service.get_message_by_id(message_id)
         if not message:
@@ -82,7 +76,7 @@ def get_message(message_id: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/messages", response_model=MessageResponse)
-async def create_message(request: MessageRequest):
+async def create_message(request: MessageRequest, message_service: MessageService = Depends(get_message_service), ws_manager: ConnectionManager = Depends(get_ws_manager)):
     try:
         scheduled_dt = parse_iso_datetime(request.scheduled_for) if request.scheduled_for else None
         message = message_service.create_message(
@@ -101,7 +95,7 @@ async def create_message(request: MessageRequest):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/messages/{message_id}/replies", response_model=MessageResponse)
-async def create_reply(message_id: str, request: ReplyRequest):
+async def create_reply(message_id: str, request: ReplyRequest, message_service: MessageService = Depends(get_message_service), ws_manager: ConnectionManager = Depends(get_ws_manager)  ):
     try:
         scheduled_dt = parse_iso_datetime(request.scheduled_for) if request.scheduled_for else None
         reply = message_service.create_reply(
@@ -121,7 +115,7 @@ async def create_reply(message_id: str, request: ReplyRequest):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/messages/{message_id}/replies", response_model=List[MessageResponse])
-def get_replies(message_id: str):
+def get_replies(message_id: str, message_service: MessageService = Depends(get_message_service)):
     try:
         message = message_service.get_message_by_id(message_id)
         if not message:
@@ -132,13 +126,12 @@ def get_replies(message_id: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/messages/{message_id}/reactions", response_model=MessageResponse)
-async def add_reaction(message_id: str, request: ReactionType):
+async def add_reaction(message_id: str, request: ReactionType, message_service: MessageService = Depends(get_message_service), ws_manager: ConnectionManager = Depends(get_ws_manager)):
     try:
-        if not request.reaction_type:
-            raise HTTPException(status_code=400, detail="Invalid reaction type. Must be 'like' or 'dislike'")
         message = message_service.add_reaction(message_id, request.reaction_type)
         await ws_manager.broadcast_reaction(message.to_dict())
         return MessageResponse(**message.to_dict())
+    
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid reaction type")
     except Exception:
@@ -146,7 +139,7 @@ async def add_reaction(message_id: str, request: ReactionType):
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, ws_manager: ConnectionManager = Depends(get_ws_manager), message_service: MessageService = Depends(get_message_service)  ):
     await handle_websocket(websocket, ws_manager, message_service)
 
 
