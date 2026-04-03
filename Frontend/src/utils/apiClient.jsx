@@ -2,9 +2,16 @@ import { API_CONFIG } from "../config/api.js";
 
 const BASE_URL = API_CONFIG.REST_URL;
 
+const getAuthHeader = () => {
+  const token = localStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
 export const fetchMessages = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/messages`);
+    const res = await fetch(`${BASE_URL}/messages`, {
+      headers: getAuthHeader(),
+    });
     if (!res.ok) {
       console.error("Failed to fetch messages:", res.status, res.statusText);
       return []; 
@@ -21,7 +28,10 @@ export const postMessage = async (message) => {
   try {
     const res = await fetch(`${BASE_URL}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...getAuthHeader()
+      },
       body: JSON.stringify(message),
     });
     if (!res.ok) {
@@ -38,7 +48,9 @@ export const postMessage = async (message) => {
 
 export const pollMessages = async (afterTimestamp) => {
   try {
-    const res = await fetch(`${BASE_URL}/messages/longpoll?after=${encodeURIComponent(afterTimestamp)}`);
+    const res = await fetch(`${BASE_URL}/messages/longpoll?after=${encodeURIComponent(afterTimestamp)}`, {
+      headers: getAuthHeader(),
+    });
     if (!res.ok) {
       console.error("Failed to poll messages:", res.status, res.statusText);
       return [];
@@ -55,7 +67,10 @@ export const postReply = async (messageId, reply) => {
   try {
     const res = await fetch(`${BASE_URL}/messages/${messageId}/replies`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...getAuthHeader()
+      },
       body: JSON.stringify(reply),
     });
     if (!res.ok) {
@@ -72,7 +87,9 @@ export const postReply = async (messageId, reply) => {
 
 export const fetchReplies = async (messageId) => {
   try {
-    const res = await fetch(`${BASE_URL}/messages/${messageId}/replies`);
+    const res = await fetch(`${BASE_URL}/messages/${messageId}/replies`, {
+      headers: getAuthHeader(),
+    });
     if (!res.ok) {
       console.error("Failed to fetch replies:", res.status, res.statusText);
       return [];
@@ -89,7 +106,10 @@ export const addReaction = async (messageId, reactionType) => {
   try {
     const res = await fetch(`${BASE_URL}/messages/${messageId}/reactions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...getAuthHeader()
+      },
       body: JSON.stringify({ reaction_type: reactionType }),
     });
     if (!res.ok) {

@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import asyncio
 import logging
 
-from app.api.routes import messages,websocket
+from app.api.routes import messages,websocket,auth
 from repository.repository_in_memory import InMemoryMessageRepository
 from services.message_service import MessageService
 from long_polling.poller import LongPoller
@@ -57,13 +57,14 @@ app.add_middleware(
             "http://127.0.0.1:5173",
             "http://127.0.0.1:5174"
     ],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(messages.router)
 app.include_router(websocket.router)
+app.include_router(auth.router)
 
 @app.get("/")
 @app.get("/health")

@@ -1,13 +1,20 @@
 import ChatWindow from "./components/ChatWindow.jsx";
+import Login from "./components/Login.jsx";
 import React from "react";
 import { useMessagePolling } from "../hooks/useMessagePolling.js";
 import { useWebSocket } from "../hooks/useWebSocket.js";
 import { API_CONFIG } from "./config/api.js";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 
-function App() {
+function AppContent() {
+  const { token } = useAuth();
   const pollingHook = useMessagePolling();
   const websocketHook = useWebSocket();
   
+  if (!token) {
+    return <Login />;
+  }
+
   const { messages, setMessages, loading, error, handleSendMessage, isConnected } = 
     API_CONFIG.USE_WEBSOCKET ? websocketHook : pollingHook;
 
@@ -38,6 +45,14 @@ function App() {
         )}
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

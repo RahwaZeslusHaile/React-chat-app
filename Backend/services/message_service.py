@@ -95,7 +95,7 @@ class MessageService:
         due = []
         for msg in self.repository.get_all():
             if msg.scheduled_for and msg.scheduled_for <= now:
-                msg.scheduled_for = None        # mark delivered
+                msg.scheduled_for = None       
                 self.repository.save(msg)
                 due.append(msg)
         return due

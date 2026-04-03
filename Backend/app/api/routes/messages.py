@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter,HTTPException,Query,Depends
-from typing import Optional,List
+from typing import Optional,List,Dict,Any
 
 
-from core.dependencies import get_message_service,get_poller,get_ws_manager
+from core.dependencies import get_message_service,get_poller,get_ws_manager,get_current_user
 from services.message_service import MessageService
 from long_polling.poller import LongPoller
 from schemas.message import(MessageRequest,MessageResponse,ReplyRequest)
@@ -21,7 +21,8 @@ def parse_iso_datetime(value:str) -> datetime:
 @router.get("",response_model=List[MessageResponse])
 def get_messages(
     after:Optional[str] = Query(None),
-    message_service: MessageService =Depends(get_message_service)
+    message_service: MessageService =Depends(get_message_service),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     try:
         if after:
@@ -42,6 +43,7 @@ def get_messages(
 def long_poll_message(
     after: str = Query(...),
     poller: LongPoller = Depends(get_poller),
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     try:
         after_dt = parse_iso_datetime(after)
@@ -63,7 +65,8 @@ def long_poll_message(
 @router.get("/{message_id}",response_model=MessageResponse)
 def get_message_by_ID(
     message_id:str,
-    message_service:MessageService = Depends(get_message_service)
+    message_service:MessageService = Depends(get_message_service),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     try:
         message = message_service.get_message_by_id(message_id)
@@ -84,6 +87,7 @@ async def create_message(
     request: MessageRequest,
     message_service: MessageService = Depends(get_message_service),
     ws_manager: ConnectionManager = Depends(get_ws_manager),
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     try:
         scheduled_dt = (
@@ -117,6 +121,7 @@ async def create_reply(
     request: ReplyRequest,
     message_service: MessageService = Depends(get_message_service),
     ws_manager: ConnectionManager = Depends(get_ws_manager),
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     try:
         scheduled_dt = (
@@ -150,6 +155,7 @@ async def create_reply(
 def get_replies(
     message_id: str,
     message_service: MessageService = Depends(get_message_service),
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     try:
         message = message_service.get_message_by_id(message_id)
@@ -173,6 +179,7 @@ async def add_reaction(
     request: ReactionRequest,
     message_service: MessageService = Depends(get_message_service),
     ws_manager: ConnectionManager = Depends(get_ws_manager),
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     try:
         message = message_service.add_reaction(
